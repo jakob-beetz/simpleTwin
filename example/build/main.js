@@ -1,5 +1,9 @@
-(function () {
+(function (mqtt) {
     'use strict';
+
+    function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+    var mqtt__default = /*#__PURE__*/_interopDefaultLegacy(mqtt);
 
     var NavigationModes;
     (function (NavigationModes) {
@@ -120870,6 +120874,10 @@
 
     };
 
+    var lastmsg = "";
+    var lastModel = "";
+    var lastID = "";
+
     const container = document.getElementById('viewer-container');
     const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(255, 255, 255) });
     viewer.axes.setAxes();
@@ -120960,6 +120968,15 @@
       await viewer.shadowDropper.renderShadow(model.modelID);
 
       overlay.classList.add('hidden');
+      const preselectMat = new MeshLambertMaterial({
+    transparent: true,
+    opacity: 0.9,
+    color: 0xff0000,
+    depthTest: true,
+    });
+
+    viewer.IFC.selector.preselection.material = preselectMat;
+
 
     };
 
@@ -120991,8 +121008,13 @@
         const result = await viewer.IFC.selector.highlightIfcItem(true);
         if (!result) return;
         const { modelID, id } = result;
+        lastModel = modelID;
+        lastID = id; 
         const props = await viewer.IFC.getProperties(modelID, id, true, false);
-        console.log(props);
+        document.getElementById("ifc-name").innerHTML = props.Name.value;
+        console.log("last message: ", lastmsg);
+        //console.log(props);
+        //console.log(viewer)
       }
     };
 
@@ -121015,4 +121037,69 @@
       viewer.dropbox.loadDropboxIfc();
     });
 
-}());
+    const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8);
+
+    const host = 'ws://broker.emqx.io:8083/mqtt';
+
+    const options = {
+      keepalive: 30,
+      clientId: clientId,
+      protocolId: 'MQTT',
+      protocolVersion: 4,
+      clean: true,
+      reconnectPeriod: 1000,
+      connectTimeout: 30 * 1000,
+      will: {
+        topic: 'WillMsg',
+        payload: 'Connection Closed abnormally..!',
+        qos: 0,
+        retain: false
+      },
+      rejectUnauthorized: false
+    };
+
+    console.log('connecting mqtt client');
+    const client = mqtt__default['default'].connect(host, options);
+
+    client.on('error', (err) => {
+      console.log('Connection error: ', err);
+      client.end();
+    });
+
+    client.on('reconnect', () => {
+      console.log('Reconnecting...');
+    });
+
+    client.on('connect', () => {
+      console.log('Client connected:' + clientId);
+      client.subscribe('testtopic', { qos: 2 });
+      client.publish('testtopic', '...!', { qos: 0, retain: false });
+    });
+
+    client.on('message', (topic, message, packet) => {
+      lastmsg = message.toString();
+      console.log('Received Message: ' + message.toString() + '\nOn topic: ' + topic);
+      console.log("viewer: ",viewer);
+      console.log(lastID);
+      console.log(lastModel);
+      const customID = 'testcustom';
+      if (lastID) {
+
+         const subset = viewer.IFC.loader.ifcManager.createSubset({
+         ids: [lastID],
+         lastModel,
+         removePrevious: true,
+         customID
+       });
+
+       const positionAttr = subset.geometry.attributes.position;
+       
+       console.log(positionAttr);
+      }
+    });
+
+    client.on('close', () => {
+      console.log(clientId + ' disconnected');
+    });
+
+}(mqtt));

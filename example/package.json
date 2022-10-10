@@ -25,6 +25,7 @@
   "dependencies": {
     "dxf-writer": "^1.15.1",
     "jspdf": "^2.4.0",
+    "mqtt-worker": "github:mqttjs/mqtt-worker",
     "stats.js": "0.17.0",
     "three": "0.135",
     "three-mesh-bvh": "^0.5.11",

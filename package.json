@@ -29,5 +29,10 @@
   "workspaces": [
     "viewer",
     "example"
-  ]
+  ],
+  "dependencies": {
+    "mqtt": "^4.3.7",
+    "webpack": "^5.74.0",
+    "yarn": "^1.22.19"
+  }
 }
