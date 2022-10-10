@@ -220,6 +220,7 @@ window.ondblclick = async () => {
     const props = await viewer.IFC.getProperties(modelID, id, true, false);
     document.getElementById("ifc-name").innerHTML = props.Name.value;
     console.log("last message: ", lastmsg)
+    console.log("last model: ", modelID)
     //console.log(props);
     //console.log(viewer)
   }
@@ -282,8 +283,13 @@ client.on('connect', () => {
   client.subscribe('testtopic', { qos: 2 })
   client.publish('testtopic', '...!', { qos: 0, retain: false })
 })
-
-client.on('message', (topic, message, packet) => {
+const preselectMat = new MeshLambertMaterial({
+  transparent: true,
+  opacity: 0.6,
+  color: 0xff88ff,
+  depthTest: false,
+});
+client.on('message', async (topic, message, packet) => {
   lastmsg = message.toString()
   console.log('Received Message: ' + message.toString() + '\nOn topic: ' + topic)
   console.log("viewer: ",viewer)
@@ -291,15 +297,24 @@ client.on('message', (topic, message, packet) => {
   console.log(lastModel)
   const customID = 'testcustom'
   if (lastID) {
-
-     const subset = viewer.IFC.loader.ifcManager.createSubset({
+     
+    const props = await viewer.IFC.getProperties(lastModel, lastID, true, false);
+     console.log (props);
+     const scene = viewer.context.getScene();
+     preselectMat.color.setRGB(0,0,lastmsg);
+     const subset = await viewer.IFC.loader.ifcManager.createSubset({
+      
+     modelID: lastModel,
+     scene,
      ids: [lastID],
-     lastModel,
      removePrevious: true,
+     material: preselectMat,
      customID
    });
 
-   const positionAttr = subset.geometry.attributes.position;
+    const positionAttr = subset.geometry.attributes.position;
+    // this rotaties the whole 
+    // subset.geometry.rotateX(1.0)
    
    console.log(positionAttr)
   }
