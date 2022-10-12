@@ -20,65 +20,28 @@
       <div id="loading-overlay" class="loading-overlay hidden">
       <h1 id="loading-progress" class="loading-progress"></h1>
     </div>
-    <div id="statusbar" style="position:fixed;height: 1em;top:0;left:100px;z-index:100001">  
-      <p id="ifc-name" class="">
+    <div id="statusbar" style="position:fixed;height: 2em;top:0;left:100px;z-index:100001;padding: 1em;">  
+      <p style="font-size: 0.7em;">
+        SimpleTWIN: Bind a sensor value to an IFC entity:
+        Configured to work with const broker.emqx.io:8083
 
       </p>
-      <p id="mqtt">
+      <p>
+      Selection:<span id="ifc_name" class="" style="min-width:100px;">
+        empty, double click to select entity 
 
+      </span>
+      </p>
+
+      <p id="mqtt">
+      indicate mqtt topic. 
+
+      <input id="topic_name_input">
+      <button type="button" id="assign_to_topic">bind MQTT</button>
       </p>
     </div>
     <script type="module" src="./build/main.js">
 	</script>
-    <script type = "text/javascript" language = "javascript">
-const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
-
-const host = 'ws://broker.emqx.io:8083/mqtt'
-
-const options = {
-  keepalive: 30,
-  clientId: clientId,
-  protocolId: 'MQTT',
-  protocolVersion: 4,
-  clean: true,
-  reconnectPeriod: 1000,
-  connectTimeout: 30 * 1000,
-  will: {
-    topic: 'WillMsg',
-    payload: 'Connection Closed abnormally..!',
-    qos: 0,
-    retain: false
-  },
-  rejectUnauthorized: false
-}
-
-console.log('connecting mqtt client')
-const client = mqtt.connect(host, options)
-
-client.on('error', (err) => {
-  console.log('Connection error: ', err)
-  client.end()
-})
-
-client.on('reconnect', () => {
-  console.log('Reconnecting...')
-})
-
-client.on('connect', () => {
-  console.log('Client connected:' + clientId)
-  client.subscribe('camtwin/#', { qos: 0 })
-  client.publish('testtopic', 'ws connection demo...!', { qos: 0, retain: false })
-})
-
-client.on('message', (topic, message, packet) => {
-  console.log('Received Message: ' + message.toString() + '\nOn topic: ' + topic)
-})
-
-client.on('close', () => {
-  console.log(clientId + ' disconnected')
-})
-    </script>
-
-      
+    
   </body>
 </html>

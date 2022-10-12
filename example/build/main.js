@@ -120877,7 +120877,7 @@
     var lastmsg = "";
     var lastModel = "";
     var lastID = "";
-
+    var bind_topic = "/rwth-twin/#";
     const container = document.getElementById('viewer-container');
     const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(255, 255, 255) });
     viewer.axes.setAxes();
@@ -121011,7 +121011,7 @@
         lastModel = modelID;
         lastID = id; 
         const props = await viewer.IFC.getProperties(modelID, id, true, false);
-        document.getElementById("ifc-name").innerHTML = props.Name.value;
+        document.getElementById("ifc_name").innerHTML = props.Name.value;
         console.log("last message: ", lastmsg);
         console.log("last model: ", modelID);
         //console.log(props);
@@ -121071,10 +121071,17 @@
       console.log('Reconnecting...');
     });
 
+
+    document.getElementById("assign_to_topic").onclick = function (event) {
+      bind_topic = document.getElementById("topic_name_input").value;
+      console.log("applied to topic ", bind_topic);
+      client.subscribe(bind_topic, {qos: 2});
+    };
+
     client.on('connect', () => {
       console.log('Client connected:' + clientId);
-      client.subscribe('testtopic', { qos: 2 });
-      client.publish('testtopic', '...!', { qos: 0, retain: false });
+      client.subscribe(bind_topic, { qos: 2 });
+      client.publish(bind_topic, '...!', { qos: 0, retain: false });
     });
     const preselectMat = new MeshLambertMaterial({
       transparent: true,
@@ -121085,16 +121092,16 @@
     client.on('message', async (topic, message, packet) => {
       lastmsg = message.toString();
       console.log('Received Message: ' + message.toString() + '\nOn topic: ' + topic);
-      console.log("viewer: ",viewer);
-      console.log(lastID);
-      console.log(lastModel);
-      const customID = 'testcustom';
+      // console.log("viewer: ",viewer)
+      // console.log(lastID)
+      // console.log(lastModel)
+      const customID = 'mqtt-driven';
       if (lastID) {
          
         const props = await viewer.IFC.getProperties(lastModel, lastID, true, false);
          console.log (props);
          const scene = viewer.context.getScene();
-         preselectMat.color.setRGB(0,0,lastmsg);
+         preselectMat.color.setRGB(lastmsg,0,0);
          const subset = await viewer.IFC.loader.ifcManager.createSubset({
           
          modelID: lastModel,
