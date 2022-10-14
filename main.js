@@ -247,13 +247,13 @@ dropBoxButton.addEventListener('click', () => {
 
 const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
 
-const host = 'ws://broker.emqx.io:8084/mqtt'
+const host = 'wss://broker.emqx.io:8084/mqtt'
 
 const options = {
   keepalive: 30,
   clientId: clientId,
   protocolId: 'MQTT',
-  protocolVersion: 4,
+  protocolVersion: 5,
   clean: true,
   reconnectPeriod: 1000,
   connectTimeout: 30 * 1000,
