@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" type="image/png" href="./favicon.ico" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IFC.js</title>
+     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"> -->
+	 <!-- </script> -->
+      <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+	 
+  </head>
+  <body>
+    <aside class="side-menu" id="side-menu-left"></aside>
+      <div id="viewer-container"></div>
+      <div id="loading-overlay" class="loading-overlay hidden">
+      <h1 id="loading-progress" class="loading-progress"></h1>
+    </div>
+    <div id="statusbar" style="position:fixed;height: 2em;top:0;left:100px;z-index:100001;padding: 1em;">  
+      Selection:<span id="ifc_name" class="" style="min-width:100px;">
+      
+
+      </span>
+      <input id="topic_name_input">
+      <button type="button" id="assign_to_topic">bind MQTT</button>
+      <p id="mqtt">
+
+      </p>
+    </div>
+    <script type="module" src="./build/main.js">
+	</script>
+    <script type = "text/javascript" language = "javascript">
+const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
+
+const host = 'ws://broker.emqx.io:8084/mqtt'
+
+const options = {
+  keepalive: 30,
+  clientId: clientId,
+  protocolId: 'MQTT',
+  protocolVersion: 4,
+  clean: true,
+  reconnectPeriod: 1000,
+  connectTimeout: 30 * 1000,
+  will: {
+    topic: 'WillMsg',
+    payload: 'Connection Closed abnormally..!',
+    qos: 0,
+    retain: false
+  },
+  rejectUnauthorized: false
+}
+
+console.log('connecting mqtt client')
+const client = mqtt.connect(host, options)
+
+client.on('error', (err) => {
+  console.log('Connection error: ', err)
+  client.end()
+})
+
+client.on('reconnect', () => {
+  console.log('Reconnecting...')
+})
+
+client.on('connect', () => {
+  console.log('Client connected:' + clientId)
+  client.subscribe('camtwin/#', { qos: 0 })
+  client.publish('testtopic', 'ws connection demo...!', { qos: 0, retain: false })
+})
+
+client.on('message', (topic, message, packet) => {
+  console.log('Received Message: ' + message.toString() + '\nOn topic: ' + topic)
+})
+
+client.on('close', () => {
+  console.log(clientId + ' disconnected')
+})
+    </script>
+
+      
+  </body>
+</html>
