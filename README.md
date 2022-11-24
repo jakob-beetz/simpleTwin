@@ -18,4 +18,6 @@ To use,
 4. Go to [the free EMQX MQTT web-interface client](http://www.emqx.io/online-mqtt-client) or similar and use the same topic on the public broker [broker.emqx.io] 
 
 
+## Develop further
 
+The 
